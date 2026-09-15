@@ -27,4 +27,9 @@ for time, relative in ASSETS.items():
         if image.width > 1800:
             image.thumbnail((1800, 1800), Image.Resampling.LANCZOS)
         image.save(target, "WEBP", quality=82, method=6)
+        if relative.startswith(("products/", "editorial/")):
+            for width in (480, 800):
+                thumb = image.copy()
+                thumb.thumbnail((width, 1800), Image.Resampling.LANCZOS)
+                thumb.save(target.with_name(f"{target.stem}-{width}.webp"), "WEBP", quality=80, method=6)
     print(f"{target.relative_to(DEST)}: {target.stat().st_size:,} bytes")

@@ -3,7 +3,7 @@ const BUSINESS = {
   subtitle: "Infanto e Juvenil",
   whatsapp: "", // DDD + número, somente dígitos. Ex.: 5511999999999
   phone: "",
-  instagram: "", // URL completa do perfil
+  instagram: "https://www.instagram.com/universokidsif?stkn=MTdhdTdvdGY5NnQ0dg==",
   address: "",
   maps: "",
   openingHours: "",
@@ -28,16 +28,19 @@ function configureBusiness() {
     if (BUSINESS.instagram) { link.target = "_blank"; link.rel = "noopener noreferrer"; }
   });
   $("#contact-whatsapp").textContent = BUSINESS.phone || (BUSINESS.whatsapp ? `+${BUSINESS.whatsapp}` : "Número em breve");
-  $("#contact-instagram").textContent = BUSINESS.instagram || "Perfil em breve";
+  $("#contact-instagram").textContent = BUSINESS.instagram ? "@universokidsif" : "Perfil em breve";
   $("#contact-address").textContent = BUSINESS.address || "Endereço em breve";
   $("#contact-hours").textContent = BUSINESS.openingHours || "Horário em breve";
   $("#year").textContent = new Date().getFullYear();
   if (BUSINESS.canonical) { const tag = document.createElement("link"); tag.rel = "canonical"; tag.href = BUSINESS.canonical; document.head.append(tag); }
   if (BUSINESS.ogImage) { const tag = document.createElement("meta"); tag.setAttribute("property", "og:image"); tag.content = BUSINESS.ogImage; document.head.append(tag); }
+  if (BUSINESS.whatsapp) $("#question-submit").innerHTML = 'Enviar pelo WhatsApp <span aria-hidden="true">↗</span>';
 }
 
 function photoHTML(image, label, extraClass = "") {
-  return `<div class="photo-slot ${extraClass}"><img src="${image}" alt="${label}" loading="lazy" decoding="async" onerror="this.hidden=true;this.parentElement.classList.add('missing-photo')"><span class="photo-prompt">Foto da coleção<small>Adicione ${label.toLowerCase()}</small></span></div>`;
+  const thumb = image.replace(/\.webp$/, "-480.webp");
+  const medium = image.replace(/\.webp$/, "-800.webp");
+  return `<div class="photo-slot ${extraClass}"><img src="${thumb}" srcset="${thumb} 480w, ${medium} 800w, ${image} 1220w" sizes="(max-width: 767px) 48vw, (max-width: 1024px) 45vw, 25vw" alt="${label}" loading="lazy" decoding="async" onerror="this.hidden=true;this.parentElement.classList.add('missing-photo')"><span class="photo-prompt">Foto da coleção<small>Adicione ${label.toLowerCase()}</small></span></div>`;
 }
 
 function productCard(product, variant = "") {
@@ -104,10 +107,45 @@ window.addEventListener("resize", () => { if (window.innerWidth > 1024) setMenu(
 
 window.addEventListener("scroll", () => $("#site-header").classList.toggle("scrolled", window.scrollY > 20), {passive:true});
 
+const questionsPanel = $("#questions-panel");
+const questionTriggers = $$(".contact-open");
+let questionPreviousFocus;
+function setQuestions(open, trigger) {
+  questionsPanel.hidden = !open;
+  questionTriggers.forEach(button => button.setAttribute("aria-expanded", String(open)));
+  if (open) { questionPreviousFocus = trigger; $("#question-text").focus(); }
+  else questionPreviousFocus?.focus();
+}
+questionTriggers.forEach(button => button.addEventListener("click", () => setQuestions(questionsPanel.hidden, button)));
+$(".questions-close").addEventListener("click", () => setQuestions(false));
+document.addEventListener("keydown", event => { if (event.key === "Escape" && !questionsPanel.hidden) setQuestions(false); });
+document.addEventListener("click", event => {
+  if (!questionsPanel.hidden && !questionsPanel.contains(event.target) && !questionTriggers.some(button => button.contains(event.target))) setQuestions(false);
+});
+$("#question-form").addEventListener("submit", async event => {
+  event.preventDefault();
+  const question = $("#question-text").value.trim();
+  const feedback = $("#question-feedback");
+  if (!question) { feedback.textContent = "Escreva sua dúvida antes de continuar."; $("#question-text").focus(); return; }
+  const message = `Olá! Vim pelo site da Universo Kids e tenho uma dúvida: ${question}`;
+  if (BUSINESS.whatsapp) {
+    window.open(whatsappUrl(message), "_blank", "noopener,noreferrer");
+    feedback.textContent = "WhatsApp aberto com sua pergunta pronta para enviar.";
+    return;
+  }
+  if (!navigator.clipboard?.writeText) { feedback.textContent = "Selecione e copie sua dúvida para enviar pelo Instagram."; return; }
+  const copyAttempt = navigator.clipboard.writeText(message);
+  window.open(instagramUrl(), "_blank", "noopener,noreferrer");
+  try { await copyAttempt; feedback.textContent = "Dúvida copiada. Cole a mensagem em uma conversa com a loja no Instagram."; }
+  catch { feedback.textContent = "Não foi possível copiar automaticamente. Copie sua dúvida antes de enviar pelo Instagram."; }
+});
+
 function setupPhotos() {
   $$("[data-photo]").forEach(slot => {
     const img = document.createElement("img");
     img.src = slot.dataset.photo;
+    img.srcset = `${slot.dataset.photo.replace(/\.webp$/, "-480.webp")} 480w, ${slot.dataset.photo.replace(/\.webp$/, "-800.webp")} 800w, ${slot.dataset.photo} 1220w`;
+    img.sizes = "(max-width: 767px) 100vw, 50vw";
     img.alt = slot.getAttribute("aria-label")?.replace("Espaço reservado para fotografia", "Fotografia") || "Fotografia editorial Universo Kids";
     img.decoding = "async";
     if (!slot.classList.contains("hero-photo")) img.loading = "lazy";
