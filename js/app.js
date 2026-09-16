@@ -13,7 +13,7 @@ const BUSINESS = {
 
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
-const whatsappMessage = (name) => `Olá! Vim pelo site da Universo Kids e gostaria de saber mais sobre este produto: ${name}.`;
+const whatsappMessage = (name) => `Olá! Vim pelo site da Universo Kids e tenho interesse neste produto: ${name}. Gostaria de consultar tamanho e disponibilidade.`;
 const whatsappUrl = (message) => BUSINESS.whatsapp ? `https://wa.me/${BUSINESS.whatsapp.replace(/\D/g, "")}?text=${encodeURIComponent(message)}` : "#contato";
 const instagramUrl = () => BUSINESS.instagram || "#contato";
 
@@ -26,11 +26,21 @@ function configureBusiness() {
   $$(".instagram-link").forEach(link => {
     link.href = instagramUrl();
     if (BUSINESS.instagram) { link.target = "_blank"; link.rel = "noopener noreferrer"; }
+    else link.hidden = true;
   });
-  $("#contact-whatsapp").textContent = BUSINESS.phone || (BUSINESS.whatsapp ? `+${BUSINESS.whatsapp}` : "Número em breve");
-  $("#contact-instagram").textContent = BUSINESS.instagram ? "@universokidsif" : "Perfil em breve";
-  $("#contact-address").textContent = BUSINESS.address || "Endereço em breve";
-  $("#contact-hours").textContent = BUSINESS.openingHours || "Horário em breve";
+  $("#instagram").hidden = !BUSINESS.instagram;
+  const contactFields = [
+    ["#contact-whatsapp", BUSINESS.phone],
+    ["#contact-instagram", BUSINESS.instagram ? "@universokidsif" : ""],
+    ["#contact-address", BUSINESS.address],
+    ["#contact-hours", BUSINESS.openingHours]
+  ];
+  contactFields.forEach(([selector, value]) => {
+    const field = $(selector);
+    const content = String(value || "").trim();
+    field.textContent = content;
+    field.closest("p").hidden = !content;
+  });
   $("#year").textContent = new Date().getFullYear();
   if (BUSINESS.canonical) { const tag = document.createElement("link"); tag.rel = "canonical"; tag.href = BUSINESS.canonical; document.head.append(tag); }
   if (BUSINESS.ogImage) { const tag = document.createElement("meta"); tag.setAttribute("property", "og:image"); tag.content = BUSINESS.ogImage; document.head.append(tag); }
@@ -50,11 +60,11 @@ function productCard(product, variant = "") {
 
 function renderProducts() {
   $("#new-products").innerHTML = PRODUCTS.filter(p => p.new).slice(0, 4).map(p => productCard(p)).join("");
-  $("#girls-products").innerHTML = PRODUCTS.filter(p => p.category === "meninas").map(p => productCard(p, "collection-card")).join("");
-  $("#boys-products").innerHTML = PRODUCTS.filter(p => p.category === "meninos").map(p => productCard(p, "collection-card")).join("");
+  $("#girls-products").innerHTML = PRODUCTS.filter(p => p.category === "meninas").sort((a, b) => Number(Boolean(a.new)) - Number(Boolean(b.new))).map(p => productCard(p, "collection-card")).join("");
+  $("#boys-products").innerHTML = PRODUCTS.filter(p => p.category === "meninos").sort((a, b) => Number(Boolean(a.new)) - Number(Boolean(b.new))).map(p => productCard(p, "collection-card")).join("");
   $("#baby-products").innerHTML = PRODUCTS.filter(p => p.category === "bebes").map(p => productCard(p, "baby-card")).join("");
-  $("#pair-products").innerHTML = [PRODUCTS[3], PRODUCTS[0]].map(p => productCard(p, "pair-card")).join("");
-  $("#instagram-mosaic").innerHTML = [PRODUCTS[1], PRODUCTS[4], PRODUCTS[2], PRODUCTS[7]].map(p => photoHTML(p.image, p.name, "instagram-photo")).join("");
+  $("#pair-products").innerHTML = [PRODUCTS[2], PRODUCTS[5]].map(p => productCard(p, "pair-card")).join("");
+  $("#instagram-mosaic").innerHTML = [PRODUCTS[7], PRODUCTS[6], PRODUCTS[1], PRODUCTS[4]].map(p => photoHTML(p.image, p.name, "instagram-photo")).join("");
   $$(".quick-trigger").forEach(button => button.addEventListener("click", () => openQuickView(Number(button.dataset.product))));
 }
 
@@ -64,10 +74,45 @@ function openQuickView(id) {
   const product = PRODUCTS.find(p => p.id === id);
   if (!product) return;
   previousFocus = document.activeElement;
-  $("#quick-image").innerHTML = photoHTML(product.image, product.name, "quick-photo");
+  const gallery = [product.image, ...(Array.isArray(product.gallery) ? product.gallery : [])].filter((image, index, images) => typeof image === "string" && image && images.indexOf(image) === index);
+  const showImage = image => { $("#quick-image").innerHTML = photoHTML(image, product.name, "quick-photo"); };
+  showImage(gallery[0]);
+  const galleryElement = $("#quick-gallery");
+  galleryElement.replaceChildren();
+  galleryElement.hidden = gallery.length < 2;
+  if (gallery.length > 1) {
+    gallery.forEach((image, index) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "quick-gallery-item";
+      button.setAttribute("aria-label", `Ver foto ${index + 1} de ${gallery.length} de ${product.name}`);
+      button.setAttribute("aria-pressed", String(index === 0));
+      const thumbnail = document.createElement("img");
+      thumbnail.src = image;
+      thumbnail.alt = "";
+      thumbnail.loading = "lazy";
+      button.append(thumbnail);
+      button.addEventListener("click", () => {
+        showImage(image);
+        $$("button", galleryElement).forEach(item => item.setAttribute("aria-pressed", String(item === button)));
+      });
+      galleryElement.append(button);
+    });
+  }
   $("#quick-category").textContent = product.category === "meninas" ? "MENINAS" : product.category === "meninos" ? "MENINOS" : "BEBÊS";
   $("#quick-title").textContent = product.name;
   $("#quick-description").textContent = product.description;
+  const sizes = Array.isArray(product.sizes) ? product.sizes.filter(Boolean).join(", ") : product.sizes;
+  const optionalFields = [
+    ["#quick-price", product.price == null || product.price === "" ? "" : typeof product.price === "number" ? new Intl.NumberFormat("pt-BR", {style:"currency", currency:"BRL"}).format(product.price) : String(product.price)],
+    ["#quick-sizes", sizes ? `Tamanhos: ${sizes}` : ""],
+    ["#quick-availability", product.availability == null || product.availability === "" ? "" : `Disponibilidade: ${typeof product.availability === "boolean" ? (product.availability ? "Disponível" : "Indisponível") : product.availability}`]
+  ];
+  optionalFields.forEach(([selector, value]) => {
+    const field = $(selector);
+    field.textContent = value || "";
+    field.hidden = !value;
+  });
   const link = $("#quick-whatsapp");
   link.href = whatsappUrl(whatsappMessage(product.name));
   if (BUSINESS.whatsapp) { link.target = "_blank"; link.rel = "noopener noreferrer"; }

@@ -9,3 +9,24 @@
 @media(max-width:767px){.header-whatsapp{font-size:.72rem;white-space:nowrap}.header-whatsapp::before{content:none}.questions-toggle{right:16px;bottom:calc(16px + env(safe-area-inset-bottom))}.questions-panel{right:16px;bottom:calc(78px + env(safe-area-inset-bottom));padding:18px;max-height:calc(100dvh - 112px - env(safe-area-inset-bottom))}}
 @media(max-width:359px){.header-whatsapp{font-size:.66rem}.questions-toggle{font-size:.76rem}}
 @media(min-width:431px) and (max-width:767px){.quick-panel{width:min(92vw,520px);display:block}.quick-image,.quick-photo{height:38dvh;min-height:220px}.quick-content{padding:24px 30px 34px}}
+@media(max-width:767px){
+  .hero{padding-bottom:24px}
+  .hero-grid{gap:16px}
+  .hero-copy{padding-top:24px}
+  .hero-copy h1{margin:16px 0}
+  .hero-actions{margin-top:20px}
+  .hero-foot{display:none}
+  .hero-visual{padding-bottom:12px}
+  .hero-photo{aspect-ratio:4/5}
+  .hero-photo img{object-position:center top}
+  .categories{padding-top:32px;padding-bottom:38px}
+  .categories .section-heading{margin-bottom:22px}
+  .category-item{min-height:112px}
+  .products-section{padding-top:44px}
+  .consult-link{display:inline-flex;align-items:center;min-height:44px}
+  .quick-panel{overscroll-behavior:contain}
+  .questions-panel{max-height:calc(100dvh - 160px - env(safe-area-inset-bottom))}
+  .questions-toggle{padding-right:12px}
+  .questions-toggle>span:last-child{font-size:0}
+  .questions-toggle>span:last-child::after{content:"Dúvidas";font-size:.76rem}
+}

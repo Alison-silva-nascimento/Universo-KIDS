@@ -1,4 +1,6 @@
-/* Substitua os caminhos por fotografias reais em assets/products/. Sem preços, tamanhos ou estoque fictícios. */
+/* Dados opcionais por produto: price (número ou texto), sizes (lista ou texto),
+   availability (texto ou booleano) e gallery (lista de caminhos WebP com variantes -480/-800).
+   Não preencher preços, tamanhos ou estoque sem confirmação da loja. */
 const PRODUCTS = [
   {id:1,name:"Conjunto preto de cerejas",category:"meninas",image:"assets/products/conjunto-preto-cerejas.webp",description:"Um conjunto com estampa de cerejas para looks cheios de personalidade.",available:null,new:true},
   {id:2,name:"Conjunto roxo de corações",category:"meninas",image:"assets/products/conjunto-roxo-coracoes.webp",description:"Corações delicados em um look com personalidade.",available:null,new:true},
