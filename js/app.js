@@ -1,8 +1,8 @@
 const BUSINESS = {
   name: "Universo Kids",
   subtitle: "Infanto e Juvenil",
-  whatsapp: "", // DDD + número, somente dígitos. Ex.: 5511999999999
-  phone: "",
+  whatsapp: "556493071814", // Número informado pela loja, apenas dígitos
+  phone: "+55 64 9307-1814",
   instagram: "https://www.instagram.com/universokidsif?stkn=MTdhdTdvdGY5NnQ0dg==",
   address: "",
   maps: "",
