@@ -6,7 +6,7 @@ const BUSINESS = {
   instagram: "https://www.instagram.com/universokidsif?stkn=MTdhdTdvdGY5NnQ0dg==",
   address: "",
   maps: "",
-  openingHours: "",
+  openingHours: "09h às 18h",
   canonical: "", // URL completa do site quando publicada
   ogImage: "" // URL absoluta de fotografia real quando disponível
 };
